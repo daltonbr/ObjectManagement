@@ -10,6 +10,8 @@ public class Game : PersistableObject
     [SerializeField] private KeyCode saveKey = KeyCode.S;
     [SerializeField] private KeyCode loadKey = KeyCode.L;
     
+    private const int SaveVersion = 1;
+    
     private List<Shape> _shapes;
     public PersistentStorage storage;
     
@@ -60,19 +62,29 @@ public class Game : PersistableObject
     
     public override void Save(GameDataWriter writer)
     {
+        writer.Write(SaveVersion);
         writer.Write(_shapes.Count);
         for (int i = 0; i < _shapes.Count; i++)
         {
+            writer.Write(_shapes[i].ShapeID);
             _shapes[i].Save(writer);
         }
     }
     
     public override void Load (GameDataReader reader)
     {
+        int version = reader.ReadInt();
+        if (version > SaveVersion)
+        {
+            Debug.LogError($"[Game] Unsupported future save version {version}");
+            return;
+        }
+        
         int count = reader.ReadInt();
         for (int i = 0; i < count; i++)
         {
-            Shape instance = shapeFactory.Get(0);
+            int shapeID = reader.ReadInt();
+            Shape instance = shapeFactory.Get(shapeID);
             instance.Load(reader);
             _shapes.Add(instance);
         }
