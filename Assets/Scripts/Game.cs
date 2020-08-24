@@ -32,7 +32,7 @@ public class Game : PersistableObject
         }
         else if (Input.GetKeyDown(saveKey))
         {
-            storage.Save(this);
+            storage.Save(this, SaveVersion);
         }
         else if (Input.GetKeyDown(loadKey))
         {
@@ -57,23 +57,24 @@ public class Game : PersistableObject
         t.localPosition = Random.insideUnitSphere * 5f;
         t.localRotation = Random.rotation;
         t.localScale = Vector3.one * Random.Range(0.1f, 1f);
+        instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
         _shapes.Add(instance);
     }
     
     public override void Save(GameDataWriter writer)
     {
-        writer.Write(SaveVersion);
         writer.Write(_shapes.Count);
         for (int i = 0; i < _shapes.Count; i++)
         {
             writer.Write(_shapes[i].ShapeID);
+            writer.Write(_shapes[i].MaterialID);
             _shapes[i].Save(writer);
         }
     }
     
     public override void Load (GameDataReader reader)
     {
-        int version = reader.ReadInt();
+        int version = reader.Version;
         if (version > SaveVersion)
         {
             Debug.LogError($"[Game] Unsupported future save version {version}");
@@ -84,7 +85,8 @@ public class Game : PersistableObject
         for (int i = 0; i < count; i++)
         {
             int shapeID = reader.ReadInt();
-            Shape instance = shapeFactory.Get(shapeID);
+            int materialID = reader.ReadInt();
+            Shape instance = shapeFactory.Get(shapeID, materialID);
             instance.Load(reader);
             _shapes.Add(instance);
         }

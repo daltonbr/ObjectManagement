@@ -36,4 +36,11 @@ public class GameDataWriter
         _writer.Write(value.z);
     }
     
+    public void Write (Color value) {
+        _writer.Write(value.r);
+        _writer.Write(value.g);
+        _writer.Write(value.b);
+        _writer.Write(value.a);
+    }
+    
 }
