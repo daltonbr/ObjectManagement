@@ -112,13 +112,15 @@ public class Game : PersistableObject
 
     public void Save()
     {
-        storage.Save(this, SaveVersion);
+        // storage.Save(this, SaveVersion);
+        storage.SaveWithBrowser(this, SaveVersion);
     }
 
     public void Load()
     {
         BeginNewGame();
-        storage.Load(this);   
+        // storage.Load(this);
+        storage.LoadWithBrowser(this);
     }
 
     public override void Save(GameDataWriter writer)
