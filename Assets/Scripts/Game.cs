@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class Game : PersistableObject
@@ -10,6 +11,8 @@ public class Game : PersistableObject
     [SerializeField] private KeyCode saveKey = KeyCode.S;
     [SerializeField] private KeyCode loadKey = KeyCode.L;
     [SerializeField] private KeyCode destroyKey = KeyCode.X;
+
+    [SerializeField] private Text objectCountText;
     
     private const int SaveVersion = 1;
     private float _creationProgress;
@@ -57,25 +60,26 @@ public class Game : PersistableObject
         }
         else if (Input.GetKeyDown(saveKey))
         {
-            storage.Save(this, SaveVersion);
+            Save();
         }
         else if (Input.GetKeyDown(loadKey))
         {
-            BeginNewGame();
-            storage.Load(this);            
+            Load();            
         }
     }
     
-    private void BeginNewGame()
+    public void BeginNewGame()
     {
         foreach (Shape o in _shapes)
         {
             Destroy(o.gameObject);
         }
         _shapes.Clear();
+        
+        UpdateObjectCount();
     }
 
-    private void CreateShape()
+    public void CreateShape()
     {
         Shape instance = shapeFactory.GetRandom();
         Transform t = instance.transform;
@@ -84,9 +88,11 @@ public class Game : PersistableObject
         t.localScale = Vector3.one * Random.Range(0.1f, 1f);
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
         _shapes.Add(instance);
+
+        UpdateObjectCount();
     }
 
-    private void DestroyShape()
+    public void DestroyShape()
     {
         // We remove a random element, and since we don't care about order
         // we move the last element to the place of the removed one
@@ -100,8 +106,21 @@ public class Game : PersistableObject
         int lastIndex = _shapes.Count - 1;
         _shapes[index] = _shapes[lastIndex];
         _shapes.RemoveAt(lastIndex);
+        
+        UpdateObjectCount();
     }
-    
+
+    public void Save()
+    {
+        storage.Save(this, SaveVersion);
+    }
+
+    public void Load()
+    {
+        BeginNewGame();
+        storage.Load(this);   
+    }
+
     public override void Save(GameDataWriter writer)
     {
         writer.Write(_shapes.Count);
@@ -131,6 +150,13 @@ public class Game : PersistableObject
             instance.Load(reader);
             _shapes.Add(instance);
         }
+        
+        UpdateObjectCount();
+    }
+
+    public void UpdateObjectCount()
+    {
+        objectCountText.text = _shapes.Count.ToString("G");
     }
     
 }
