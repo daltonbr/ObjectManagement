@@ -9,6 +9,7 @@ public class Game : PersistableObject
     [SerializeField] private KeyCode newGameKey = KeyCode.N;
     [SerializeField] private KeyCode saveKey = KeyCode.S;
     [SerializeField] private KeyCode loadKey = KeyCode.L;
+    [SerializeField] private KeyCode destroyKey = KeyCode.X;
     
     private const int SaveVersion = 1;
     
@@ -25,6 +26,10 @@ public class Game : PersistableObject
         if (Input.GetKeyDown(createKey))
         {
             CreateShape();
+        }
+        else if (Input.GetKeyDown(destroyKey))
+        {
+            DestroyShape();
         }
         else if (Input.GetKey(newGameKey))
         {
@@ -59,6 +64,22 @@ public class Game : PersistableObject
         t.localScale = Vector3.one * Random.Range(0.1f, 1f);
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
         _shapes.Add(instance);
+    }
+    
+    private void DestroyShape()
+    {
+        // We remove a random element, and since we don't care about order
+        // we move the last element to the place of the removed one
+        // ...or we could use another data structure =)
+        
+        if (_shapes.Count == 0) return;
+        
+        int index = Random.Range(0, _shapes.Count);
+        Destroy(_shapes[index].gameObject);
+        
+        int lastIndex = _shapes.Count - 1;
+        _shapes[index] = _shapes[lastIndex];
+        _shapes.RemoveAt(lastIndex);
     }
     
     public override void Save(GameDataWriter writer)
