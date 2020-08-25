@@ -12,10 +12,15 @@ public class Game : PersistableObject
     [SerializeField] private KeyCode destroyKey = KeyCode.X;
     
     private const int SaveVersion = 1;
+    private float _creationProgress;
+    private float _destructionProgress;
     
     private List<Shape> _shapes;
     public PersistentStorage storage;
-    
+
+    public float CreationSpeed { get; set; }
+    public float DestructionSpeed { get; set; }
+
     private void Awake()
     {
         _shapes = new List<Shape>();
@@ -23,6 +28,21 @@ public class Game : PersistableObject
     
     private void Update()
     {
+        // Create a new shape each cycle, carrying on some extra timings
+        // and even considering that we may need to create several in a loop.
+        _creationProgress += Time.deltaTime * CreationSpeed;
+        while (_creationProgress >= 1f)
+        {
+            _creationProgress -= 1f;
+            CreateShape();
+        }
+        
+        _destructionProgress += Time.deltaTime * DestructionSpeed;
+        while (_destructionProgress >= 1f) {
+            _destructionProgress -= 1f;
+            DestroyShape();
+        }
+        
         if (Input.GetKeyDown(createKey))
         {
             CreateShape();
@@ -65,7 +85,7 @@ public class Game : PersistableObject
         instance.SetColor(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.25f, 1f, 1f, 1f));
         _shapes.Add(instance);
     }
-    
+
     private void DestroyShape()
     {
         // We remove a random element, and since we don't care about order
